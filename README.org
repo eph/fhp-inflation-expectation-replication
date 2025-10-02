@@ -1,0 +1,22 @@
+
+
+* Figures and Tables
+
+|----------+-----------------------------------------+-----------------------------------------------+
+| *Name*   | *File*                                  | *Requires*                                    |
+|----------+-----------------------------------------+-----------------------------------------------+
+| Figure 1 | ~fig_partial_equilibrium.py~            | None                                          |
+| Table 1  | ~tab_partial_equilibrium.py~            | None                                          |
+| Table 2  | ~tab_partial_equilibrium.py~            | None                                          |
+| Figure 2 | ~fig_FHP_log_mdds_varying_k.py~         | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 3 | ~fig_FHP_CG_scatter.py~                 | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Table 3  | ~tab_FHP_selected_posterior.py~         | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 4 | ~fig_FHP_AHS.py~                        | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 5 | ~fig_tab_FHP_variance_decomposition.py~ | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Table 4  | ~fig_tab_FHP_variance_decomposition.py~ | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 6 | ~fig_FHP_CG_densities.py~               | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 7 | ~fig_FHP_KW_densities.py~               | ~create_fortran_models.py~, ~estimate_FHP.py~ |
+| Figure 8 | ~fig_SI_CG_density.py~                  | ~create_fortran_models.py~, ~estimate_SI.py~  |
+| Figure 9 | ~fig_SI_AHS.py~                         | ~create_fortran_models.py~, ~estimate_SI.py~  |
+|----------+-----------------------------------------+-----------------------------------------------+
+

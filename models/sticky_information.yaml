@@ -1,0 +1,121 @@
+declarations:
+  name: 'sticky_habits'
+  type: 'sticky-information'
+  index: j
+  variables: [y, mc, dmc, π, i, ξ, istar, ystar, Fπ_me,π1,π2,π3,π4,π5,π4avg,π5avg,Fπ,Fπfut, Fπlag, ygr_obs,infl_obs,int_obs,Finfl_obs] 
+  parameters: [rA,πA,yQ,λ,σ,ζ,Φ_π,Φ_y,σ_ξ,σ_y,σ_i,ρ_ξ,ρ_i,ρ_y,σ_F,ρ_F]      
+  auxiliary_parameters: [spread, η, β, ω, φ]
+  shocks: [ε_ξ, ε_i, ε_y, ε_F]
+  observables: [ygr, infl, int, Fπ]
+
+equations:
+  model:
+    # Euler Equation
+    - (1 + ζ*(1-ω))*y = ζ*y(-1) + (1-ω)*y(+1) - σ*(1-ζ)*(i - (1-ω)*π(+1) - ξ)
+
+    # Marginal cost
+    - mc = (1/(1-ζ))*(y-ζ*y(-1)-ystar)
+
+    - dmc = mc - mc(-1)
+
+    # Sticky Info Φllips Curve
+    - π = ((1-λ)/λ)*mc + (1-λ) * SUM(λ^j * EXP(-j-1) (π + dmc), (j, 0, inf)) 
+
+    # Monηry Policy
+    - i = istar + Φ_π*π + Φ_y*y
+
+    # Expected Inflation
+    - π1 = π(+1)
+    - π2 = π1(+1)
+    - π3 = π2(+1)
+    - π4 = π3(+1)
+    - π5 = π4(+1)
+    - π4avg = 0.25*(π1 + π2 + π3 + π4) 
+    - π5avg = 0.25*(π2 + π3 + π4 + π5) 
+    - Fπ = (1-λ)*π4avg + λ*(1-λ) * SUM(λ^j * EXP(-j-1) (π4avg), (j, 0, inf))  
+    - Fπfut = (1-λ)*π5avg + (1-λ)*λ* SUM(λ^j * EXP(-j-1) (π5avg), (j, 0, inf))  
+    - Fπlag = Fπfut #(-1)
+    
+    - ξ = ρ_ξ*ξ(-1) + ε_ξ  
+    - istar = ρ_i*istar(-1) + ε_i
+    - ystar = ρ_y*ystar(-1) + ε_y
+    - Fπ_me = ρ_F*Fπ_me(-1) + ε_F
+
+    - ygr_obs = y - y(-1)
+    - infl_obs = 4.0*π
+    - int_obs = 4.0*i
+    - Finfl_obs = 4.0*Fπ + 4*Fπ_me
+
+  observables:
+    ygr : yQ + ygr_obs
+
+    # Observed inflation
+    infl : πA + infl_obs
+
+    # Observed Interest Rate
+    int : πA + rA + int_obs
+
+    # expected inflation
+    Fπ : πA + Finfl_obs
+
+
+calibration:
+  parameters:
+    rA : 2.0
+    πA : 2.0
+    yQ : 0.5
+    λ : 0.75
+    σ : 1.0
+    ζ : 0.7
+    Φ_π: 1.5
+    Φ_y: 0.25
+    σ_ξ: 1.0
+    σ_y: 1.0
+    σ_i: 1.0
+    ρ_ξ: 0.85
+    ρ_i: 0.85
+    ρ_y: 0.85
+    σ_F: 0.1
+    ρ_F: 0.0
+    
+  auxiliary_parameters:
+    spread : 1.0
+    η: 1-1/(1+spread/400)
+    β: (1-η)/(1+rA/400)
+    ω: η/(1+η)
+    φ: 1/(1-ζ)
+    β_cg: λ/(1-λ)
+
+  covariances:
+    ε_ξ: σ_ξ^2
+    ε_i: σ_i^2
+    ε_y: σ_y^2
+    ε_F: σ_F^2
+  
+
+
+estimation:
+  data:
+    file: '.cache/observables/longsample.txt'
+    start: 1966Q1
+
+  prior:
+    α: [normal, 0.75, 0.05]
+    σ: [gamma, 2.0, 0.5]
+    rA: [gamma, 2.00, 1.0]
+    πA: [normal, 4, 1]
+    yQ: [normal, 0.5, 0.1]
+    ζ: [uniform, 0, 1]
+    a: [uniform, 0, 1]
+    κ: [gamma, 0.05, 0.1]
+    Φ_π: [gamma, 1.50, 0.25]
+    Φ_y: [gamma, 0.25, 0.25]
+    σ_ξ: [inv_gamma, 1, 4]
+    σ_i: [inv_gamma, 1, 4]
+    σ_y: [inv_gamma, 1, 4]
+    ρ_ξ: [beta, 0.5, 0.1]
+    ρ_y: [beta, 0.5, 0.1]
+    ρ_i: [beta, 0.5, 0.1]
+    σ_F: [inv_gamma, 0.1, 4]
+    ρ_F: [uniform, 0, 1] 
+    λ: [beta, 0.5, 0.1]

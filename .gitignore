@@ -1,0 +1,4 @@
+.cache/*
+.pyc
+.env/*
+uv.lock

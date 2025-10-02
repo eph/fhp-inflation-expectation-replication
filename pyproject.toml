@@ -1,0 +1,31 @@
+[project]
+name = "fhp-inflation-replication"
+version = "0.1.0"
+description = "Replication Code For Inflation Expectations Under Finite Horizon Planning"
+authors = [{ name = "Ed Herbst" }]
+readme = "README.md"
+requires-python = ">=3.13"
+
+dependencies = [
+    "numpy",
+    "scipy",
+    "statsmodels",
+    "pandas",
+    "matplotlib",
+    # Local dependency
+    "dsge", # @ file:///home/eherbst/Dropbox/code/dsge",
+    "fortress", # @ file:///home/eherbst/Dropbox/code/fortress",
+    "tqdm",
+    "openpyxl",
+    "pylatexenc",
+    "pandas_datareader"
+]
+
+[tool.uv.sources]
+dsge = { path = "/home/eherbst/Dropbox/code/dsge", editable = true }   # ← this is the live link
+fortress = { path = "/home/eherbst/Dropbox/code/fortress", editable = true }   # ← this is the live link
+
+# [[tool.uv.index]]
+# url = "https://4OS7CRLf:3EB5S9vcT6eOKLz2DrBvB6LC%2FeEqFw%2B7rJ7WlhTyiqxc@nexus.frb.gov/repository/pypi/simple/"
+# default = true
+# Optional: automatically install in editable mode if you're developing `dsge`

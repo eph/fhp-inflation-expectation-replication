@@ -1,0 +1,147 @@
+declarations:
+  name: nkfhpv2
+  type: fhp
+  variables: [y, π, i, ylag]
+  shocks: [ξ,ystar,istar,ηstar]
+  values: [v, vtilde]
+  value_updates: [v_e, vtilde_e]
+  k : 4 
+  expectations: 4
+  parameters: [rA,     
+               πA,     
+               yQ,     
+               κ,      
+               σ,      
+               Φ_π,    
+               Φ_y,    
+               σ_ξ,    
+               σ_y,    
+               σ_i,    
+               ρ_ξ,    
+               ρ_i,    
+               ρ_y,    
+               γ,      
+               γ_f,    
+               Φ_π_LR, 
+               Φ_y_LR, 
+               σ_η,    
+               ρ_η]
+
+  para_func: [β]
+  observables: [ygr, infl, int, Fπ]
+  innovations: [ε_ξ, ε_y, ε_i, ε_η]
+model:
+  static:
+    - ylag = y(-1)
+
+  shocks:
+    - ξ = ρ_ξ * ξ(-1) + ε_ξ
+    - ystar = ρ_y * ystar(-1) + ε_y
+    - istar = ρ_i * istar(-1) + ε_i
+    - ηstar = ρ_η * ηstar(-1) + ε_η
+
+  cycle:
+    plan: 
+      - π = β*π(+1) + κ * (y - ystar)
+      - y = y(+1) -σ*(i - π(+1) - ξ) 
+      - i = Φ_π*π + Φ_y*y + istar
+    terminal:
+      - π = κ * (y - ystar)
+      - y = -σ*(i-ξ)
+      - i = Φ_π*π + Φ_y*y + istar
+
+  trend:
+    plan:
+      - i = Φ_π_LR*π + Φ_y_LR*y 
+      - π = β*π(+1) + κ*y
+      - y = y(+1) -σ*(i - π(+1))
+    terminal:
+      - π = κ*y + β*vtilde
+      - y = -σ*i + v
+      - i = Φ_π_LR*π + Φ_y_LR*y 
+
+  value:
+    function:
+      - v = (1-γ)*v(-1) + γ*v_e(-1)
+      - vtilde = (1-γ_f)*vtilde(-1) + γ_f*vtilde_e(-1)
+
+    update:
+      - v_e = y + σ*π
+      - vtilde_e = π 
+
+
+  observables:
+    # Output growth
+    ygr : yQ + y - ylag 
+
+    # Observed inflation
+    infl : πA + 4.0*π
+
+    # Observed Interest Rate
+    int : πA + rA + 4.0*i
+
+    # expected inflation
+    Fπ : πA + π(1) + π(2) + π(3) + π(4) + 4*ηstar
+
+calibration:
+  parameters:
+    σ: 1.0
+    κ: 0.01
+    Φ_π: 1.5
+    Φ_y: 0.25
+    γ: 0.1
+    γ_f: 0.1
+    σ_ξ: 1.0
+    σ_y: 1.0
+    σ_i: 1.0
+    ρ_ξ: 0.85
+    ρ_y: 0.85
+    ρ_i: 0.85
+    rA: 2
+    πA: 2
+    yQ: 0.5
+    Φ_π_LR: 1.5
+    Φ_y_LR: 0.25
+    ρ_η: 0.0
+    σ_η: 1.0
+    
+  para_func:
+    β: 1/(1+rA/400)
+    
+
+  covariance:
+    ε_ξ: σ_ξ^2
+    ε_i: σ_i^2
+    ε_y: σ_y^2
+    ε_η: σ_η^2
+
+estimation:
+  data:  
+    file: '.cache/observables/longsample.txt'
+    start: 1966Q1
+
+  prior:
+    σ: [gamma, 2.0, 0.5]
+    rA: [gamma, 2.00, 1.0]
+    πA: [normal, 4, 1]
+    yQ: [normal, 0.5, 0.1]
+    ρ: [uniform, 0, 1]
+    γ: [uniform, 0, 1]
+    γ_f: [uniform, 0, 1]
+    κ: [gamma, 0.05, 0.1]
+    Φ_π: [gamma, 1.50, 0.25]
+    Φ_y: [gamma, 0.25, 0.25]
+    σ_ξ: [inv_gamma, 1, 4]
+    σ_i: [inv_gamma, 1, 4]
+    σ_y: [inv_gamma, 1, 4]
+    σ_π: [inv_gamma, 1, 4]
+    ρ_π: [uniform, 0, 1]
+    ρ_ξ: [uniform, 0, 1]
+    ρ_y: [uniform, 0, 1]
+    ρ_i: [uniform, 0, 1]
+    Φ_π_LR: [gamma, 1.50, 0.25]
+    Φ_y_LR: [gamma, 0.25, 0.25]
+    h: [normal, 0, 1]
+    σ_η: [inv_gamma, 0.025, 10]
+    ρ_η: [uniform, 0, 1] 
+    spread: [normal, 1, 0.15]
