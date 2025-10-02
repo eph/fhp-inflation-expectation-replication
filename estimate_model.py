@@ -5,8 +5,6 @@ import subprocess
 
 from dsge import read_yaml
 from dsge.codegen import create_fortran_smc
-from dsge.translate import write_prior_file
-
 
 
 # parse model, nruns, npart, nblocks, and observable
@@ -46,14 +44,12 @@ if 'FHP' in args.model:
     FHP = read_yaml('models/finite_horizon.yaml')
     FHP = FHP.fix_parameters(ρ_η=0,σ_η=0)
     cFHP = FHP.compile_model()
-    #yy, prior = cFHP.yy, cFHP.prior.fortran_prior()
     k = int(args.model[6:-1])
     template_file = FHP.smc(k, expectations=0)
     create_fortran_smc(template_file,
                        output_directory=f'.cache/compiled_models/{args.observable}/{args.model}',
                        fortress_cmake_dir='/home/eherbst/Dropbox/code/fortress/build')
 
-    #write_prior_file(cFHP.prior, f'.cache/compiled_models/{args.observable}/{args.model}')
 else:
     SI = read_yaml('models/sticky_information.yaml').fix_parameters(h=4,spread=1.0)
     SI.create_fortran_model(f'.cache/compiled_models/{args.observable}/{args.model}', env=env)

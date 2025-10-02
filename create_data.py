@@ -1,7 +1,13 @@
-
 import numpy as np
 import pandas as pd
 from pandas_datareader import data as pdr
+import os
+
+# -----------------------
+# Create cache directory if it doesn't exist
+# -----------------------
+if not os.path.exists(".cache/observables"):
+    os.makedirs(".cache/observables")
 
 # -----------------------
 # Load FRED macro data
@@ -39,7 +45,8 @@ base_cols = ["output_growth", "inflation", "interest_rate", "inflation_expectati
 # Save 1: full sample no expectations
 # -----------------------
 fullsample = data[base_cols]
-fullsample.to_csv("fullsample.txt", sep="\t", float_format="%.6f")
+np.savetxt(".cache/observables/fullsample_with_nan_inflation_expectations.txt", fullsample.values, delimiter='\t', fmt='%.6f')
+
 
 # -----------------------
 # Load SPF GDP deflator level forecasts
@@ -81,21 +88,33 @@ def load_spf_data(series='p'):
 
     return df
 
-def get_ahead_expectations(spf_mean, periods, horizon=1):
+def get_1q_ahead_cg_style(spf_mean, periods):
     """
-    Compute annualized inflation expectations from SPF level forecasts.
-    
-    spf_mean: DataFrame, index=survey_date (forecast origin), columns=target dates
-    periods: PeriodIndex of the desired sample
-    horizon: int, quarters ahead (1 or 4)
+    Compute 1-quarter ahead inflation expectations, Coibion-Gorodnichenko style.
+    This is 400 * ln(forecast of p[t] / forecast of p[t-1]), where forecasts are made at t.
     """
     expectations = []
     for t in periods:
-        origin = t - horizon  # forecast origin
         try:
-            level_t = spf_mean.at[origin, t]        # forecast for t made at origin
-            level_prev = spf_mean.at[origin, t - 1] # previous level at origin
-            infl = np.log(level_t / level_prev) * 400  # annualized quarterly
+            level_t = spf_mean.at[t, t]        # nowcast for t made at t
+            level_prev = spf_mean.at[t, t - 1] # backcast for t-1 made at t
+            infl = np.log(level_t / level_prev) * 400
+        except KeyError:
+            infl = np.nan
+        expectations.append(infl)
+    return pd.Series(expectations, index=periods)
+
+def get_4q_ahead_cg_style(spf_mean, periods):
+    """
+    Compute 1-year ahead inflation expectations, Coibion-Gorodnichenko style.
+    This is 100 * ln(forecast of p[t+3] / forecast of p[t-1]), where forecasts are made at t.
+    """
+    expectations = []
+    for t in periods:
+        try:
+            level_t_plus_3 = spf_mean.at[t, t + 3] # forecast for t+3 made at t
+            level_t_minus_1 = spf_mean.at[t, t - 1] # backcast for t-1 made at t
+            infl = np.log(level_t_plus_3 / level_t_minus_1) * 100
         except KeyError:
             infl = np.nan
         expectations.append(infl)
@@ -111,21 +130,15 @@ sample_periods = data.index
 # Save 2: 1-quarter ahead expectations
 # -----------------------
 data_1q = fullsample.copy()
-# Compute 1q ahead inflation from levels (annualized)
-data_1q["inflation_expectations"] = get_ahead_expectations(spf_mean, sample_periods, horizon=1)
-data_1q.to_csv("fullsample_with_1q_inflation_expectations.txt", sep="\t", float_format="%.6f")
+data_1q["inflation_expectations"] = get_1q_ahead_cg_style(spf_mean, sample_periods)
+np.savetxt(".cache/observables/fullsample_with_1q_inflation_expectations.txt", data_1q.values, delimiter='\t', fmt='%.6f')
+
 
 # -----------------------
 # Save 3: 4-quarter ahead expectations
 # -----------------------
 data_4q = fullsample.copy()
-data_4q["inflation_expectations"] = get_ahead_expectations(spf_mean, sample_periods, horizon=4)
-data_4q.to_csv("fullsample_with_4q_inflation_expectations.txt", sep="\t", float_format="%.6f")
-np.savetxt('fullsample_with_4q_inflation_expectations.txt',data_4q)
-# -----------------------
-# Save 4: placeholder column (all NaNs)
-# -----------------------
-data_nan = fullsample.copy()
-data_nan["inflation_expectations"] = np.nan
-#data_nan.to_csv("fullsample_with_nan_inflation_expectations.txt", sep="\t", float_format="%.6f")
-print("All four datasets saved successfully.")
+data_4q["inflation_expectations"] = get_4q_ahead_cg_style(spf_mean, sample_periods)
+np.savetxt(".cache/observables/fullsample_with_4q_inflation_expectations.txt", data_4q.values, delimiter='\t', fmt='%.6f')
+
+print("All three datasets saved successfully to .cache/observables.")
