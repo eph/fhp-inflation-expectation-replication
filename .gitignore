@@ -2,3 +2,4 @@
 .pyc
 .env/*
 uv.lock
+exploratory/
